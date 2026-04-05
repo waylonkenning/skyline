@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useStore } from '../store';
+import { COMMON_SERVICES, searchCommonServices, type CommonService } from '../data/commonServices';
 
 export function ServicesPage() {
   const { services, categories, currentUser, getRiskLevel } = useStore();
@@ -8,6 +9,7 @@ export function ServicesPage() {
   const [categoryFilter, setCategoryFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showQuickAddModal, setShowQuickAddModal] = useState(false);
 
   const filteredServices = services.filter(s => {
     const matchesSearch = s.name.toLowerCase().includes(search.toLowerCase()) || 
@@ -35,18 +37,26 @@ export function ServicesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Services</h1>
           <p className="text-slate-500 dark:text-slate-400">{services.length} services in catalogue</p>
         </div>
         {canEdit && (
-          <button
-            onClick={() => setShowAddModal(true)}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
-          >
-            + Add Service
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setShowQuickAddModal(true)}
+              className="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-lg transition-colors text-sm"
+            >
+              + Quick Add
+            </button>
+            <button
+              onClick={() => setShowAddModal(true)}
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
+            >
+              + Add Service
+            </button>
+          </div>
         )}
       </div>
 
@@ -199,6 +209,117 @@ export function ServicesPage() {
       {showAddModal && (
         <AddServiceModal onClose={() => setShowAddModal(false)} />
       )}
+      {showQuickAddModal && (
+        <QuickAddModal onClose={() => setShowQuickAddModal(false)} />
+      )}
+    </div>
+  );
+}
+
+function QuickAddModal({ onClose }: { onClose: () => void }) {
+  const { categories, addService, currentUser } = useStore();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('');
+
+  const filteredServices = searchQuery 
+    ? searchCommonServices(searchQuery)
+    : COMMON_SERVICES.filter(s => !selectedCategory || s.category === selectedCategory);
+
+  const handleQuickAdd = async (service: CommonService) => {
+    const category = categories.find(c => c.name === service.category);
+    await addService({
+      name: service.name,
+      vendor: service.vendor,
+      category: category?.id || categories[0]?.id || '',
+      cost: service.defaultCost,
+      billingCycle: service.billingCycle,
+      contractEndDate: null,
+      eolDate: null,
+      alternativeIds: [],
+      status: 'active',
+      notes: service.description,
+      createdBy: currentUser?.id || '',
+    });
+  };
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
+  };
+
+  const categoryOptions = ['Productivity', 'Communication', 'Security', 'Finance', 'Development', 'Infrastructure'];
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-xl w-full max-w-2xl max-h-[85vh] flex flex-col">
+        <div className="p-4 md:p-6 border-b border-slate-200 dark:border-slate-700">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Quick Add Common Services</h2>
+              <p className="text-sm text-slate-500 dark:text-slate-400">Add popular services with one click</p>
+            </div>
+            <button
+              onClick={onClose}
+              className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-2xl"
+            >
+              ✕
+            </button>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <input
+              type="text"
+              placeholder="Search services..."
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              className="flex-1 px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white text-sm"
+            />
+            <select
+              value={selectedCategory}
+              onChange={e => setSelectedCategory(e.target.value)}
+              className="px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white text-sm"
+            >
+              <option value="">All Categories</option>
+              {categoryOptions.map(cat => (
+                <option key={cat} value={cat}>{cat}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+        
+        <div className="flex-1 overflow-y-auto p-4 md:p-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {filteredServices.slice(0, 30).map((service, idx) => {
+              const category = categories.find(c => c.name === service.category);
+              return (
+                <button
+                  key={`${service.name}-${idx}`}
+                  onClick={() => handleQuickAdd(service)}
+                  className="flex items-start gap-3 p-3 bg-slate-50 dark:bg-slate-700/50 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg text-left transition-colors"
+                >
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium text-slate-900 dark:text-white text-sm truncate">{service.name}</p>
+                      <span 
+                        className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium flex-shrink-0"
+                        style={{ backgroundColor: `${category?.color}20`, color: category?.color }}
+                      >
+                        {category?.name || service.category}
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{service.vendor}</p>
+                    <p className="text-xs text-slate-400 dark:text-slate-500 mt-1 truncate">
+                      {formatCurrency(service.defaultCost)}/{service.billingCycle === 'monthly' ? 'mo' : 'yr'}
+                    </p>
+                  </div>
+                  <span className="text-emerald-600 dark:text-emerald-400 text-lg flex-shrink-0">+</span>
+                </button>
+              );
+            })}
+          </div>
+          {filteredServices.length === 0 && (
+            <p className="text-center text-slate-500 dark:text-slate-400 py-8">No services found</p>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
@@ -230,7 +351,7 @@ function AddServiceModal({ onClose }: { onClose: () => void }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white dark:bg-slate-800 rounded-xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
         <div className="p-6 border-b border-slate-200 dark:border-slate-700">
           <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Add Service</h2>
