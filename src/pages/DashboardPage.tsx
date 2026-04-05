@@ -44,26 +44,26 @@ export function DashboardPage() {
         <p className="text-slate-500 dark:text-slate-400">Overview of your IT services</p>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow">
-          <p className="text-sm text-slate-500 dark:text-slate-400">Monthly Spend</p>
-          <p className="text-2xl font-bold text-slate-900 dark:text-white mt-1">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+        <div className="bg-white dark:bg-slate-800 p-4 md:p-6 rounded-xl shadow">
+          <p className="text-xs md:text-sm text-slate-500 dark:text-slate-400">Monthly Spend</p>
+          <p className="text-xl md:text-2xl font-bold text-slate-900 dark:text-white mt-1">
             {formatCurrency(getTotalMonthlySpend())}
           </p>
         </div>
-        <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow">
-          <p className="text-sm text-slate-500 dark:text-slate-400">Annual Spend</p>
-          <p className="text-2xl font-bold text-slate-900 dark:text-white mt-1">
+        <div className="bg-white dark:bg-slate-800 p-4 md:p-6 rounded-xl shadow">
+          <p className="text-xs md:text-sm text-slate-500 dark:text-slate-400">Annual Spend</p>
+          <p className="text-xl md:text-2xl font-bold text-slate-900 dark:text-white mt-1">
             {formatCurrency(getTotalAnnualSpend())}
           </p>
         </div>
-        <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow">
-          <p className="text-sm text-slate-500 dark:text-slate-400">Active Services</p>
-          <p className="text-2xl font-bold text-slate-900 dark:text-white mt-1">{activeServices.length}</p>
+        <div className="bg-white dark:bg-slate-800 p-4 md:p-6 rounded-xl shadow">
+          <p className="text-xs md:text-sm text-slate-500 dark:text-slate-400">Active</p>
+          <p className="text-xl md:text-2xl font-bold text-slate-900 dark:text-white mt-1">{activeServices.length}</p>
         </div>
-        <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow">
-          <p className="text-sm text-slate-500 dark:text-slate-400">At Risk</p>
-          <p className="text-2xl font-bold text-red-500 mt-1">
+        <div className="bg-white dark:bg-slate-800 p-4 md:p-6 rounded-xl shadow">
+          <p className="text-xs md:text-sm text-slate-500 dark:text-slate-400">At Risk</p>
+          <p className="text-xl md:text-2xl font-bold text-red-500 mt-1">
             {(riskCounts['high'] || 0) + (riskCounts['critical'] || 0)}
           </p>
         </div>
